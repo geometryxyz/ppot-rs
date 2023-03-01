@@ -1,0 +1,9 @@
+[package]
+name = "ark-ppot"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ark-bn254 = "^0.3.0"
+ark-ff = { version = "^0.3.0", default-features = false }
+byteorder = "1.4.3"
