@@ -2,6 +2,11 @@
 name = "ppot-rs"
 version = "0.1.0"
 edition = "2021"
+authors = ["Koh Wei Jie <wj@geometry.xyz>"]
+license = "MIT"
+keywords = ["snarkjs", "ptau", "zksnark", "crypto"]
+categories = ["cryptography", "cryptography::cryptocurrencies"]
+description = "A Rust crate for reading .ptau (powers of tau) files compatible with snarkjs"
 
 [dependencies]
 ark-bn254 = "^0.3.0"
