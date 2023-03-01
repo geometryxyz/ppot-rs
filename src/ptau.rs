@@ -149,65 +149,71 @@ pub fn read(
     Ok((g1_points, g2_points))
 }
 
-fn hex_to_fq(val: &str) -> Fq {
-    assert_eq!(val.len(), 64);
-    let bytes_vec = hex::decode(val).unwrap();
-    let bytes_slice: &[u8] = bytes_vec.as_slice();
+#[cfg(test)]
+mod tests {
+    use super::Error;
+    use ark_bn254::{G1Affine, G2Affine, Fq, Fq2};
+    use ark_ff::FromBytes;
+    fn hex_to_fq(val: &str) -> Fq {
+        assert_eq!(val.len(), 64);
+        let bytes_vec = hex::decode(val).unwrap();
+        let bytes_slice: &[u8] = bytes_vec.as_slice();
 
-    Fq::read(bytes_slice).unwrap()
-}
+        Fq::read(bytes_slice).unwrap()
+    }
 
-#[test]
-pub fn test_read() {
-    let num_g1_points = 511;
-    let num_g2_points = 256;
+    #[test]
+    pub fn test_read() {
+        let num_g1_points = 511;
+        let num_g2_points = 256;
 
-    let ptau_file = "8.ptau";
+        let ptau_file = "8.ptau";
 
-    let (g1_points, g2_points) = read(ptau_file, num_g1_points, num_g2_points).unwrap();
-    assert_eq!(g1_points.len(), num_g1_points);
-    assert_eq!(g2_points.len(), num_g2_points);
+        let (g1_points, g2_points) = super::read(ptau_file, num_g1_points, num_g2_points).unwrap();
+        assert_eq!(g1_points.len(), num_g1_points);
+        assert_eq!(g2_points.len(), num_g2_points);
 
-    // Check that the first 2 G1 points are correct
-    let point_g1_0_x = Fq::from(1);
-    let point_g1_0_y = Fq::from(2);
-    let point_g1_1_x = hex_to_fq("cf51b65ad54479e394aef90d4b0ec4e4a1a16bbb6865614a4b5b8a0959fdd32d");
-    let point_g1_1_y = hex_to_fq("f04eb3f6ef601be3d326c237feed3351de969ce6d634905a4304ba25350c6825");
+        // Check that the first 2 G1 points are correct
+        let point_g1_0_x = Fq::from(1);
+        let point_g1_0_y = Fq::from(2);
+        let point_g1_1_x = hex_to_fq("cf51b65ad54479e394aef90d4b0ec4e4a1a16bbb6865614a4b5b8a0959fdd32d");
+        let point_g1_1_y = hex_to_fq("f04eb3f6ef601be3d326c237feed3351de969ce6d634905a4304ba25350c6825");
 
-    assert_eq!(g1_points[0], G1Affine::new(point_g1_0_x, point_g1_0_y, false));
-    assert_eq!(g1_points[1], G1Affine::new(point_g1_1_x, point_g1_1_y, false));
+        assert_eq!(g1_points[0], G1Affine::new(point_g1_0_x, point_g1_0_y, false));
+        assert_eq!(g1_points[1], G1Affine::new(point_g1_1_x, point_g1_1_y, false));
 
-    // Check that the first G2 point is correct
-    let point_g2_0_x0 = hex_to_fq("edf692d95cbdde46ddda5ef7d422436779445c5e66006a42761e1f12efde0018");
-    let point_g2_0_x1 = hex_to_fq("c212f3aeb785e49712e7a9353349aaf1255dfb31b7bf60723a480d9293938e19");
-    let point_g2_0_y0 = hex_to_fq("aa7dfa6601cce64c7bd3430c69e7d1e38f40cb8d8071ab4aeb6d8cdba55ec812");
-    let point_g2_0_y1 = hex_to_fq("5b9722d1dcdaac55f38eb37033314bbc95330c69ad999eec75f05f58d0890609");
-    let point_g2_0 = G2Affine::new(
-        Fq2::new(point_g2_0_x0, point_g2_0_x1),
-        Fq2::new(point_g2_0_y0, point_g2_0_y1),
-        false
-    );
-    assert_eq!(g2_points[0], point_g2_0);
-}
+        // Check that the first G2 point is correct
+        let point_g2_0_x0 = hex_to_fq("edf692d95cbdde46ddda5ef7d422436779445c5e66006a42761e1f12efde0018");
+        let point_g2_0_x1 = hex_to_fq("c212f3aeb785e49712e7a9353349aaf1255dfb31b7bf60723a480d9293938e19");
+        let point_g2_0_y0 = hex_to_fq("aa7dfa6601cce64c7bd3430c69e7d1e38f40cb8d8071ab4aeb6d8cdba55ec812");
+        let point_g2_0_y1 = hex_to_fq("5b9722d1dcdaac55f38eb37033314bbc95330c69ad999eec75f05f58d0890609");
+        let point_g2_0 = G2Affine::new(
+            Fq2::new(point_g2_0_x0, point_g2_0_x1),
+            Fq2::new(point_g2_0_y0, point_g2_0_y1),
+            false
+        );
+        assert_eq!(g2_points[0], point_g2_0);
+    }
 
-#[test]
-pub fn test_read_too_few_g1() {
-    let num_g1_points = 512;
-    let num_g2_points = 256;
+    #[test]
+    pub fn test_read_too_few_g1() {
+        let num_g1_points = 512;
+        let num_g2_points = 256;
 
-    let ptau_file = "8.ptau";
+        let ptau_file = "8.ptau";
 
-    let r = read(ptau_file, num_g1_points, num_g2_points);
-    assert_eq!(r.err().unwrap(), Error::InvalidNumG1Points);
-}
+        let r = super::read(ptau_file, num_g1_points, num_g2_points);
+        assert_eq!(r.err().unwrap(), Error::InvalidNumG1Points);
+    }
 
-#[test]
-pub fn test_read_too_few_g2() {
-    let num_g1_points = 511;
-    let num_g2_points = 257;
+    #[test]
+    pub fn test_read_too_few_g2() {
+        let num_g1_points = 511;
+        let num_g2_points = 257;
 
-    let ptau_file = "8.ptau";
+        let ptau_file = "8.ptau";
 
-    let r = read(ptau_file, num_g1_points, num_g2_points);
-    assert_eq!(r.err().unwrap(), Error::InvalidNumG2Points);
+        let r = super::read(ptau_file, num_g1_points, num_g2_points);
+        assert_eq!(r.err().unwrap(), Error::InvalidNumG2Points);
+    }
 }
