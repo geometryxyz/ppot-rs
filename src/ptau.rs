@@ -1,13 +1,13 @@
-use std::fs::File;
-use std::collections::BTreeMap;
-use std::io::{Read, Seek, SeekFrom};
-use byteorder::{LittleEndian, ReadBytesExt};
-use ark_bn254::{G1Affine, G2Affine, Fq, Fq2};
+use ark_bn254::{Fq, Fq2, G1Affine, G2Affine};
+use ark_ff::biginteger::BigInteger256;
 use ark_ff::fields::PrimeField;
 use ark_ff::FromBytes;
-use ark_ff::biginteger::BigInteger256;
+use byteorder::{LittleEndian, ReadBytesExt};
+use std::collections::BTreeMap;
+use std::fs::File;
+use std::io::{Read, Seek, SeekFrom};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Error {
     InvalidMagicString,
     InvalidVersion,
@@ -83,14 +83,14 @@ pub fn read(
 
     // Read the power
     let power = f.read_u32::<LittleEndian>().unwrap();
-    
+
     // Read the ceremony power
     let _ceremony_power = f.read_u32::<LittleEndian>().unwrap();
 
     let max_g2_points = 1 << power;
     let max_g1_points = max_g2_points * 2 - 1;
     if num_g1_points > max_g1_points {
-        return Err(Error::InvalidNumG1Points)
+        return Err(Error::InvalidNumG1Points);
     }
     if num_g2_points > max_g2_points {
         return Err(Error::InvalidNumG2Points);
@@ -152,7 +152,7 @@ pub fn read(
 #[cfg(test)]
 mod tests {
     use super::Error;
-    use ark_bn254::{G1Affine, G2Affine, Fq, Fq2};
+    use ark_bn254::{Fq, Fq2, G1Affine, G2Affine};
     use ark_ff::FromBytes;
     fn hex_to_fq(val: &str) -> Fq {
         assert_eq!(val.len(), 64);
@@ -176,21 +176,33 @@ mod tests {
         // Check that the first 2 G1 points are correct
         let point_g1_0_x = Fq::from(1);
         let point_g1_0_y = Fq::from(2);
-        let point_g1_1_x = hex_to_fq("cf51b65ad54479e394aef90d4b0ec4e4a1a16bbb6865614a4b5b8a0959fdd32d");
-        let point_g1_1_y = hex_to_fq("f04eb3f6ef601be3d326c237feed3351de969ce6d634905a4304ba25350c6825");
+        let point_g1_1_x =
+            hex_to_fq("cf51b65ad54479e394aef90d4b0ec4e4a1a16bbb6865614a4b5b8a0959fdd32d");
+        let point_g1_1_y =
+            hex_to_fq("f04eb3f6ef601be3d326c237feed3351de969ce6d634905a4304ba25350c6825");
 
-        assert_eq!(g1_points[0], G1Affine::new(point_g1_0_x, point_g1_0_y, false));
-        assert_eq!(g1_points[1], G1Affine::new(point_g1_1_x, point_g1_1_y, false));
+        assert_eq!(
+            g1_points[0],
+            G1Affine::new(point_g1_0_x, point_g1_0_y, false)
+        );
+        assert_eq!(
+            g1_points[1],
+            G1Affine::new(point_g1_1_x, point_g1_1_y, false)
+        );
 
         // Check that the first G2 point is correct
-        let point_g2_0_x0 = hex_to_fq("edf692d95cbdde46ddda5ef7d422436779445c5e66006a42761e1f12efde0018");
-        let point_g2_0_x1 = hex_to_fq("c212f3aeb785e49712e7a9353349aaf1255dfb31b7bf60723a480d9293938e19");
-        let point_g2_0_y0 = hex_to_fq("aa7dfa6601cce64c7bd3430c69e7d1e38f40cb8d8071ab4aeb6d8cdba55ec812");
-        let point_g2_0_y1 = hex_to_fq("5b9722d1dcdaac55f38eb37033314bbc95330c69ad999eec75f05f58d0890609");
+        let point_g2_0_x0 =
+            hex_to_fq("edf692d95cbdde46ddda5ef7d422436779445c5e66006a42761e1f12efde0018");
+        let point_g2_0_x1 =
+            hex_to_fq("c212f3aeb785e49712e7a9353349aaf1255dfb31b7bf60723a480d9293938e19");
+        let point_g2_0_y0 =
+            hex_to_fq("aa7dfa6601cce64c7bd3430c69e7d1e38f40cb8d8071ab4aeb6d8cdba55ec812");
+        let point_g2_0_y1 =
+            hex_to_fq("5b9722d1dcdaac55f38eb37033314bbc95330c69ad999eec75f05f58d0890609");
         let point_g2_0 = G2Affine::new(
             Fq2::new(point_g2_0_x0, point_g2_0_x1),
             Fq2::new(point_g2_0_y0, point_g2_0_y1),
-            false
+            false,
         );
         assert_eq!(g2_points[0], point_g2_0);
     }
